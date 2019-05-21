@@ -47,12 +47,12 @@ export default {
     }
   },
   mounted() {
-    let limit = 50,
+    let limit = 40,
       looper = () => {
         limit--;
         let updated = this.updateSelectionRegionHeight();
         if(updated && limit > 0)
-          setTimeout(looper, 100);
+          setTimeout(looper, 80);
         else
           this.pivotsStable = true;
       };
