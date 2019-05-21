@@ -44,6 +44,7 @@ export default {
       selectionRegionHeight: 0,
       pivotsStable: false,
       listenerRegistered: false,
+      optionsJsonUpdatedAt: 0,
     }
   },
   mounted() {
@@ -77,6 +78,9 @@ export default {
         }
       })
     },
+    optionsJson() {
+      return JSON.stringify([...this.sanitizedOptions].sort((a, b) => a.value.toString().localeCompare(b.value.toString())));
+    },
   },
   watch: {
     value(newValue, oldValue) {
@@ -93,6 +97,19 @@ export default {
       if(newValue) {
         this.updateInput();
         this.registerListeners();
+      }
+    },
+    optionsJson(newValue) {
+      if(this.pivotsStable) {
+        this.optionsJsonUpdatedAt = Date.now();
+        // update pivots
+        this.top = 0;
+        this.lastIndex = this.placeholder ? -1 : 0;
+        this.$forceUpdate();
+        this.$nextTick(() => {
+          this.updatePivots();
+          this.updateInput();
+        })
       }
     }
   },
@@ -310,7 +327,7 @@ export default {
           "vue-scroll-picker-item": true,
           "-selected": this.lastIndex == index,
         },
-        key: option.value,
+        key: `${this.optionsJsonUpdatedAt}-${option.value}`,
         ref: "items",
         refInFor: true,
         domProps: {
