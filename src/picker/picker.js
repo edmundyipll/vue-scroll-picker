@@ -61,16 +61,7 @@ export default {
       this.$el.addEventListener("mouseup", this.onEnd)
       this.$el.addEventListener("mouseleave", this.onCancel)
     }
-    const rect = this.$refs.selection.getBoundingClientRect()
-    const med = (rect.top + rect.bottom) / 2
-    this.pivots = this.$refs.items.map((item) => {
-      const itemRect = item.getBoundingClientRect()
-      return Math.round(((itemRect.top + itemRect.bottom) / 2 - med) * 10) / 10
-    })
-    this.scrollMax = this.pivots[this.pivots.length - 1] * (-1)
-    if (this.lastIndex > 0) {
-      this.top = this.pivots[this.lastIndex] * (-1)
-    }
+    this.updatePivots();
     if (!this.value && this.sanitizedOptions[this.lastIndex]) {
       this.$emit('input', this.sanitizedOptions[this.lastIndex].value)
     }
@@ -113,6 +104,9 @@ export default {
         this.correction(foundIndex)
       }
     },
+    sanitizedOptions() {
+      this.updatePivots();
+    },
   },
   methods: {
     onScroll(e) {
@@ -124,7 +118,7 @@ export default {
 
       if (this.isScrolling) return
       this.isScrolling = true
-      
+
       if (e.deltaY < 0) {
         this.correction(this.lastIndex - Math.floor(Math.abs(e.deltaY) / 30 * this.scrollSensitivity + 1))
       } else if (e.deltaY > 0) {
@@ -243,6 +237,18 @@ export default {
         this.transitionTO = null
       }, 100)
     },
+    updatePivots() {
+      const rect = this.$refs.selection.getBoundingClientRect()
+      const med = (rect.top + rect.bottom) / 2
+      this.pivots = this.$refs.items.map((item) => {
+        const itemRect = item.getBoundingClientRect()
+        return Math.round(((itemRect.top + itemRect.bottom) / 2 - med) * 10) / 10
+      })
+      this.scrollMax = this.pivots[this.pivots.length - 1] * (-1)
+      if (this.lastIndex > 0) {
+        this.top = this.pivots[this.lastIndex] * (-1)
+      }
+    }
   },
   render(h) {
     let items = []
