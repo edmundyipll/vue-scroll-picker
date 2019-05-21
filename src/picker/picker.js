@@ -104,9 +104,6 @@ export default {
         this.correction(foundIndex)
       }
     },
-    sanitizedOptions() {
-      this.updatePivots();
-    },
   },
   methods: {
     onScroll(e) {
