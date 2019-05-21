@@ -80,6 +80,7 @@ export default {
   },
   watch: {
     value(newValue, oldValue) {
+      if(!this.pivotsStable) return;
       let foundIndex = -1
       this.sanitizedOptions.forEach((option, index) => {
         if (option.value == newValue) foundIndex = index
