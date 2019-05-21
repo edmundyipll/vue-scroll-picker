@@ -26,12 +26,8 @@ export default {
   },
   data() {
     let lastIndex = this.placeholder ? -1 : 0
-    if (this.value) {
-      this.options.forEach((option, index) => {
-        if (option == this.value || option.value == this.value) {
-          lastIndex = index
-        }
-      })
+    if (this.value && this.pivotsStable) {
+      this.updateInput()
     }
     return {
       top: 0,
@@ -45,41 +41,29 @@ export default {
       isScrolling: false,
       startY: null,
       scrollMax: null,
+      selectionRegionHeight: 0,
+      pivotsStable: false,
+      listenerRegistered: false,
     }
   },
   mounted() {
-    if (isTouchable) {
-      this.$el.addEventListener("touchstart", this.onStart)
-      this.$el.addEventListener("touchmove", this.onTouchMove)
-      this.$el.addEventListener("touchend", this.onEnd)
-      this.$el.addEventListener("touchcancel", this.onCancel)
-    } else {
-      this.$el.addEventListener("mousewheel", this.onScroll)
-      this.$el.addEventListener("wheel", this.onScroll) // for IE
-      this.$el.addEventListener("mousedown", this.onStart)
-      this.$el.addEventListener("mousemove", this.onMouseMove)
-      this.$el.addEventListener("mouseup", this.onEnd)
-      this.$el.addEventListener("mouseleave", this.onCancel)
-    }
+    let limit = 50,
+      looper = () => {
+        limit--;
+        let updated = this.updateSelectionRegionHeight();
+        if(updated && limit > 0)
+          setTimeout(looper, 100);
+        else
+          this.pivotsStable = true;
+      };
     this.updatePivots();
+    looper();
     if (!this.value && this.sanitizedOptions[this.lastIndex]) {
       this.$emit('input', this.sanitizedOptions[this.lastIndex].value)
     }
   },
   destroyed() {
-    if (isTouchable) {
-      this.$el.removeEventListener("touchstart", this.onStart)
-      this.$el.removeEventListener("touchmove", this.onTouchMove)
-      this.$el.removeEventListener("touchend", this.onEnd)
-      this.$el.removeEventListener("touchcancel", this.onCancel)
-    } else {
-      this.$el.removeEventListener("mousewheel", this.onScroll)
-      this.$el.removeEventListener("wheel", this.onScroll) // for IE
-      this.$el.removeEventListener("mousedown", this.onStart)
-      this.$el.removeEventListener("mousemove", this.onMouseMove)
-      this.$el.removeEventListener("mouseup", this.onEnd)
-      this.$el.removeEventListener("mouseleave", this.onCancel)
-    }
+    this.deregisterListeners();
   },
   computed: {
     sanitizedOptions() {
@@ -104,8 +88,46 @@ export default {
         this.correction(foundIndex)
       }
     },
+    pivotsStable(newValue) {
+      if(newValue) {
+        this.updateInput();
+        this.registerListeners();
+      }
+    }
   },
   methods: {
+    registerListeners() {
+      if (isTouchable) {
+        this.$el.addEventListener("touchstart", this.onStart)
+        this.$el.addEventListener("touchmove", this.onTouchMove)
+        this.$el.addEventListener("touchend", this.onEnd)
+        this.$el.addEventListener("touchcancel", this.onCancel)
+      } else {
+        this.$el.addEventListener("mousewheel", this.onScroll)
+        this.$el.addEventListener("wheel", this.onScroll) // for IE
+        this.$el.addEventListener("mousedown", this.onStart)
+        this.$el.addEventListener("mousemove", this.onMouseMove)
+        this.$el.addEventListener("mouseup", this.onEnd)
+        this.$el.addEventListener("mouseleave", this.onCancel)
+      }
+      this.listenerRegistered = true;
+    },
+    deregisterListeners() {
+      if(!this.listenerRegistered) return;
+      if (isTouchable) {
+        this.$el.removeEventListener("touchstart", this.onStart)
+        this.$el.removeEventListener("touchmove", this.onTouchMove)
+        this.$el.removeEventListener("touchend", this.onEnd)
+        this.$el.removeEventListener("touchcancel", this.onCancel)
+      } else {
+        this.$el.removeEventListener("mousewheel", this.onScroll)
+        this.$el.removeEventListener("wheel", this.onScroll) // for IE
+        this.$el.removeEventListener("mousedown", this.onStart)
+        this.$el.removeEventListener("mousemove", this.onMouseMove)
+        this.$el.removeEventListener("mouseup", this.onEnd)
+        this.$el.removeEventListener("mouseleave", this.onCancel)
+      }
+    },
     onScroll(e) {
       if (this.top >= 0 && e.deltaY < 0) return
       if (this.top <= this.scrollMax && e.deltaY > 0) return
@@ -234,7 +256,7 @@ export default {
         this.transitionTO = null
       }, 100)
     },
-    updatePivots() {
+    updatePivots(overrideTop) {
       const rect = this.$refs.selection.getBoundingClientRect()
       const med = (rect.top + rect.bottom) / 2
       this.pivots = this.$refs.items.map((item) => {
@@ -242,9 +264,28 @@ export default {
         return Math.round(((itemRect.top + itemRect.bottom) / 2 - med) * 10) / 10
       })
       this.scrollMax = this.pivots[this.pivots.length - 1] * (-1)
-      if (this.lastIndex > 0) {
+      if (this.lastIndex > 0 || overrideTop) {
         this.top = this.pivots[this.lastIndex] * (-1)
       }
+    },
+    updateSelectionRegionHeight() {
+      const rect = this.$refs.selection.getBoundingClientRect();
+      if(rect.height !== this.selectionRegionHeight) {
+        this.selectionRegionHeight = rect.height;
+        this.updatePivots(true);
+        return true;
+      }
+      return false;
+    },
+    updateInput() {
+      let lastIndex = this.placeholder ? -1 : 0
+      this.options.forEach((option, index) => {
+        if (option == this.value || option.value == this.value) {
+          lastIndex = index
+        }
+      })
+      this.lastIndex = lastIndex;
+      this.correction(this.lastIndex);
     }
   },
   render(h) {
