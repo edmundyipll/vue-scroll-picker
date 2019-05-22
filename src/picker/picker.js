@@ -96,7 +96,9 @@ export default {
     pivotsStable(newValue) {
       if(newValue) {
         this.updateInput();
-        this.registerListeners();
+          setTimeout(() => {
+              this.registerListeners();
+          }, 500);
       }
     },
     optionsJson(newValue) {
