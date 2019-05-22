@@ -23,12 +23,27 @@
   }
 }
 .vue-scroll-picker-item {
+  position: relative;
   text-align: center;
   height: 1.2em;
   line-height: 1.2em;
   &.-placeholder {
     color: #aaa;
-  }    
+  }
+  label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotateX(0);
+    transition: transform .3s;
+  }
+  &.prev { label { transform: translate(-50%, -50%) rotateX(-60deg); } }
+  &.prev-2 { label { transform: translate(-50%, -50%) rotateX(-50deg); } }
+  &.prev-1 { label { transform: translate(-50%, -50%) rotateX(-40deg); } }
+  &.next-1 { label { transform: translate(-50%, -50%) rotateX(40deg); } }
+  &.next-2 { label { transform: translate(-50%, -50%) rotateX(50deg); } }
+  &.next { label { transform: translate(-50%, -50%) rotateX(60deg); } }
+  &.-selected, &.dragging { label { transform: translate(-50%, -50%); } }
 }
 
 .vue-scroll-picker-layer {

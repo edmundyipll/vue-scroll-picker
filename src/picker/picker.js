@@ -326,14 +326,26 @@ export default {
         class: {
           "vue-scroll-picker-item": true,
           "-selected": this.lastIndex == index,
+          "prev": this.lastIndex - 2 > index,
+          "prev-2": this.lastIndex - 2 === index,
+          "prev-1": this.lastIndex - 1 === index,
+          "next-1": this.lastIndex + 1 === index,
+          "next-2": this.lastIndex + 2 === index,
+          "next": this.lastIndex + 2 < index,
+          "dragging": this.isDragging,
         },
         key: `${this.optionsJsonUpdatedAt}-${option.value}`,
         ref: "items",
         refInFor: true,
         domProps: {
-          innerHTML: option.name,
         },
-      })
+      }, [
+        h("label", {
+          domProps: {
+            innerHTML: option.name
+          }
+        })
+      ])
     }))
     return h("div", {class: ["vue-scroll-picker"]}, [
       h("div", {class: ["vue-scroll-picker-list"]}, [
