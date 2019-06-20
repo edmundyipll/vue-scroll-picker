@@ -48,6 +48,7 @@ export default {
     }
   },
   mounted() {
+    this.$emit('update:pivots-stable', false);
     let limit = 40,
       looper = () => {
         limit--;
@@ -94,6 +95,7 @@ export default {
       }
     },
     pivotsStable(newValue) {
+      this.$emit('update:pivots-stable', newValue);
       if(newValue) {
         this.updateInput();
           setTimeout(() => {
