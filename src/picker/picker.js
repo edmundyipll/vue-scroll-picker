@@ -49,6 +49,7 @@ export default {
   },
   mounted() {
     this.$emit('update:pivots-stable', false);
+    this.$emit('listener-registered', false);
     let limit = 40,
       looper = () => {
         limit--;
@@ -100,6 +101,7 @@ export default {
         this.updateInput();
           setTimeout(() => {
               this.registerListeners();
+              this.$emit('listener-registered', true);
           }, 500);
       }
     },
